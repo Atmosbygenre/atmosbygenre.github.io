@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Atmos by Genre</title>
+<meta name="description" content="Public TIDAL playlists where every track is a Dolby Atmos mix, sorted by genre and updated weekly.">
+<meta property="og:title" content="Atmos by Genre">
+<meta property="og:description" content="Every track in Dolby Atmos, by genre: public TIDAL playlists, updated weekly.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230d1420'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%23f0a23b' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='16' r='3.5' fill='%23f0a23b'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: one listening-room column. A hero with a top-down 7.1.4 speaker map,
+     then the playlists as a rack of channel strips with level meters, then notes. */
+  :root {
+    --bg: #0d1420;
+    --surface: #141d2b;
+    --line: #26334a;
+    --ink: #e8ecf2;
+    --muted: #93a1b5;
+    --accent: #f0a23b;
+    --accent-soft: rgba(240, 162, 59, 0.16);
+    --font-display: "Bricolage Grotesque", "Avenir Next Condensed", "Arial Narrow", sans-serif;
+    --font-body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    color-scheme: dark;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f1f3f6; --surface: #ffffff; --line: #d3dae4; --ink: #121a26;
+      --muted: #5a6677; --accent: #a65c00; --accent-soft: rgba(166, 92, 0, 0.12);
+      color-scheme: light;
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 400 1rem/1.6 var(--font-body);
+    -webkit-text-size-adjust: 100%;
+  }
+  .page {
+    max-width: 62rem;
+    margin: 0 auto;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 3rem 4rem;
+    display: grid;
+    gap: 3.5rem;
+  }
+  a { color: inherit; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+  .eyebrow {
+    font: 500 0.75rem/1.2 var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  /* Hero */
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: 2.5rem;
+    align-items: center;
+  }
+  .hero h1 {
+    font: 800 clamp(2.6rem, 7vw, 4.6rem)/0.98 var(--font-display);
+    font-variation-settings: "opsz" 96;
+    letter-spacing: -0.02em;
+    margin: 0.6rem 0 1.1rem;
+    text-wrap: balance;
+  }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .lede { font-size: 1.15rem; color: var(--muted); max-width: 34rem; margin: 0; }
+  .totals {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 2rem;
+    margin: 1.6rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .totals li { display: grid; gap: 0.1rem; }
+  .totals strong {
+    font: 700 1.6rem/1.1 var(--font-display);
+    font-variant-numeric: tabular-nums;
+  }
+  .totals span { font: 400 0.8rem/1.3 var(--font-mono); color: var(--muted); }
+
+  .room { display: grid; gap: 0.75rem; justify-items: center; margin: 0; }
+  .room svg { width: 100%; max-width: 20rem; height: auto; }
+  .room figcaption { font-size: 0.85rem; color: var(--muted); max-width: 20rem; text-align: center; }
+  .room .wall { fill: none; stroke: var(--line); stroke-width: 2; }
+  .room .ear { fill: var(--ink); }
+  .room .height { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+  .room .sub { fill: var(--muted); }
+  .room .you { fill: var(--accent); }
+  .room text { font: 500 11px var(--font-mono); fill: var(--muted); }
+  .room .spec { font: 700 22px var(--font-display); fill: var(--ink); }
+
+  /* Playlists */
+  .section-head { display: grid; gap: 0.4rem; margin-bottom: 1.25rem; }
+  .section-head h2 {
+    font: 700 1.9rem/1.15 var(--font-display);
+    margin: 0;
+    text-wrap: balance;
+  }
+  .section-head p { margin: 0; color: var(--muted); max-width: 40rem; }
+
+  .rack { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+  .strip { border-bottom: 1px solid var(--line); }
+  .strip a {
+    display: grid;
+    grid-template-columns: minmax(9rem, 1.1fr) minmax(0, 2fr) 7.5rem 6rem;
+    gap: 1.25rem;
+    align-items: center;
+    padding: 0.95rem 0.5rem;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: background-color 0.15s ease;
+  }
+  .strip a:hover { background: var(--surface); }
+  .genre { font: 700 1.2rem/1.2 var(--font-display); min-width: 0; }
+  .meter {
+    height: 0.55rem;
+    border-radius: 999px;
+    background: var(--line);
+    overflow: hidden;
+  }
+  .meter i { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+  .count { font: 400 0.85rem/1.35 var(--font-mono); font-variant-numeric: tabular-nums; color: var(--muted); }
+  .count b { display: block; font-weight: 500; color: var(--ink); font-size: 0.95rem; }
+  .open {
+    justify-self: end;
+    font: 600 0.85rem/1 var(--font-body);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  .empty { padding: 1rem 0.5rem; color: var(--muted); }
+
+  /* Notes */
+  .notes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 2rem 2.5rem;
+  }
+  .notes h3 { font: 700 1.15rem/1.25 var(--font-display); margin: 0 0 0.4rem; }
+  .notes p { margin: 0; color: var(--muted); max-width: 36rem; }
+
+  footer {
+    border-top: 1px solid var(--line);
+    padding-top: 1.25rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  footer p { margin: 0; max-width: 44rem; }
+
+  @media (max-width: 720px) {
+    .page { padding-block: 2rem 3rem; gap: 2.75rem; }
+    .hero { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+    .strip a {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas: "genre open" "meter meter" "count count";
+      gap: 0.5rem 1rem;
+      padding: 0.9rem 0.25rem;
+    }
+    .genre { grid-area: genre; }
+    .meter { grid-area: meter; }
+    .count { grid-area: count; }
+    .count b { display: inline; margin-right: 0.5rem; }
+    .open { grid-area: open; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .strip a { transition: none; }
+  }
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="hero">
+    <div>
+      <div class="eyebrow">Public TIDAL playlists</div>
+      <h1>Every track in <em>Dolby&nbsp;Atmos</em>, by genre</h1>
+      <p class="lede">You pay for spatial audio, so every song should use it. Each of these playlists holds only Dolby Atmos mixes, and new Atmos releases are added every week.</p>
+      <ul class="totals">
+        <li><strong id="total-genres">–</strong><span>genres</span></li>
+        <li><strong id="total-tracks">–</strong><span>Atmos tracks</span></li>
+        <li><strong id="total-artists">–</strong><span>artists</span></li>
+      </ul>
+    </div>
+    <figure class="room">
+      <svg viewBox="0 0 240 240" role="img" aria-labelledby="room-title">
+        <title id="room-title">Top-down view of a 7.1.4 Dolby Atmos speaker layout around a listener</title>
+        <rect class="wall" x="10" y="10" width="220" height="220" rx="14"></rect>
+        <!-- ear level: front left, center, front right, sides, rears -->
+        <circle class="ear" cx="62" cy="34" r="7"></circle>
+        <circle class="ear" cx="120" cy="28" r="7"></circle>
+        <circle class="ear" cx="178" cy="34" r="7"></circle>
+        <circle class="ear" cx="30" cy="120" r="7"></circle>
+        <circle class="ear" cx="210" cy="120" r="7"></circle>
+        <circle class="ear" cx="62" cy="206" r="7"></circle>
+        <circle class="ear" cx="178" cy="206" r="7"></circle>
+        <!-- subwoofer -->
+        <rect class="sub" x="150" y="22" width="12" height="12" rx="2"></rect>
+        <!-- overhead -->
+        <circle class="height" cx="86" cy="84" r="11"></circle>
+        <circle class="height" cx="154" cy="84" r="11"></circle>
+        <circle class="height" cx="86" cy="156" r="11"></circle>
+        <circle class="height" cx="154" cy="156" r="11"></circle>
+        <!-- listener -->
+        <circle class="you" cx="120" cy="120" r="9"></circle>
+        <text x="120" y="143" text-anchor="middle">you</text>
+        <text class="spec" x="120" y="196" text-anchor="middle">7.1.4</text>
+      </svg>
+      <figcaption>Atmos adds height. A 7.1.4 room has seven speakers at ear level, one subwoofer and four overhead (the rings), so sound can come from above you as well as around you.</figcaption>
+    </figure>
+  </header>
+
+  <section aria-labelledby="playlists-title">
+    <div class="section-head">
+      <div class="eyebrow">The playlists</div>
+      <h2 id="playlists-title">Pick a genre, press shuffle</h2>
+      <p>Each one opens in TIDAL, where you can follow it. They're big, so shuffle works better than playing from the top. The bar shows each playlist's size against the largest.</p>
+    </div>
+    <ul class="rack" id="rack"></ul>
+  </section>
+
+  <section class="notes" aria-label="How it works">
+    <div>
+      <h3>Only real Atmos mixes</h3>
+      <p>A track goes in only when TIDAL itself tags it as Dolby Atmos. Each song appears once, so you won't hear both the deluxe and standard copy, or the explicit and clean version.</p>
+    </div>
+    <div>
+      <h3>Updated every week</h3>
+      <p>A weekly update checks TIDAL's new Atmos releases and re-checks each artist's catalog about once a month, adding anything new.</p>
+    </div>
+    <div>
+      <h3>What you need</h3>
+      <p>A TIDAL subscription and a device TIDAL plays Dolby Atmos on. TIDAL's help center lists the supported apps and devices. Atmos tracks show a Dolby Atmos badge in the app.</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>An independent project by a TIDAL subscriber. Not affiliated with or endorsed by TIDAL or Dolby.</p>
+  </footer>
+</main>
+
+<!-- Written by the weekly update: window.ATMOS_PLAYLISTS = {updated, playlists: [...]} -->
+<script src="playlists.js"></script>
+<script>
+  const data = window.ATMOS_PLAYLISTS || { playlists: [] };
+  const playlists = [...data.playlists].sort((a, b) => a.genre.localeCompare(b.genre));
+  const fmt = new Intl.NumberFormat("en-US");
+  const rack = document.getElementById("rack");
+
+  if (!playlists.length) {
+    const li = document.createElement("li");
+    li.className = "empty";
+    li.textContent = "The playlist list couldn't be loaded. Try reloading the page.";
+    rack.append(li);
+  }
+
+  const largest = Math.max(1, ...playlists.map((p) => p.tracks));
+  for (const p of playlists) {
+    const li = document.createElement("li");
+    li.className = "strip";
+    const a = document.createElement("a");
+    a.href = p.url;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.setAttribute("aria-label", `${p.name}: ${fmt.format(p.tracks)} tracks. Open in TIDAL`);
+
+    const name = document.createElement("span");
+    name.className = "genre";
+    name.textContent = p.genre;
+
+    const meter = document.createElement("span");
+    meter.className = "meter";
+    const fill = document.createElement("i");
+    fill.style.width = `${Math.max(1.5, (p.tracks / largest) * 100).toFixed(1)}%`;
+    meter.append(fill);
+
+    const count = document.createElement("span");
+    count.className = "count";
+    const tracks = document.createElement("b");
+    tracks.textContent = `${fmt.format(p.tracks)} tracks`;
+    count.append(tracks, `${fmt.format(p.artists)} artists`);
+
+    const open = document.createElement("span");
+    open.className = "open";
+    open.textContent = "Open in TIDAL ↗";
+
+    a.append(name, meter, count, open);
+    li.append(a);
+    rack.append(li);
+  }
+
+  const sum = (key) => playlists.reduce((total, p) => total + p[key], 0);
+  document.getElementById("total-genres").textContent = fmt.format(playlists.length);
+  document.getElementById("total-tracks").textContent = fmt.format(sum("tracks"));
+  document.getElementById("total-artists").textContent = fmt.format(sum("artists"));
+</script>
+</body>
+</html>
