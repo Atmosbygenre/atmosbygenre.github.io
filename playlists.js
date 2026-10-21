@@ -1,6 +1,6 @@
 // Written by the playlist update after each run; don't edit by hand.
 window.ATMOS_PLAYLISTS = {
- "updated": "2026-10-20",
+ "updated": "2026-10-21",
  "playlists": [
   {
    "genre": "Pop",
